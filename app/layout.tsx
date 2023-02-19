@@ -1,18 +1,38 @@
-import './globals.css'
+import React, { ReactNode } from "react";
+import { Roboto } from "@next/font/google";
+import { getServerSession } from "next-auth/next";
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+import { authOptions } from "@/pages/api/auth/[...nextauth]";
+import AuthProvider from "../utils/AuthProvider";
+import QueryProvider from "../utils/QueryProvider";
+import Header from "./header";
+
+import "./globals.css";
+
+const roboto = Roboto({
+  subsets: ["latin", "vietnamese"],
+  weight: ["400", "500", "700", "900"],
+  variable: "--font-roboto",
+});
+
+interface IRootLayoutProps {
+  children: ReactNode;
+}
+
+export default async function RootLayout({ children }: IRootLayoutProps) {
+  const session = await getServerSession(authOptions);
+
   return (
     <html lang="en">
-      {/*
-        <head /> will contain the components returned by the nearest parent
-        head.tsx. Find out more at https://beta.nextjs.org/docs/api-reference/file-conventions/head
-      */}
       <head />
-      <body>{children}</body>
+      <body className={`${roboto.variable} bg-gray-200`}>
+        <AuthProvider session={session}>
+          <QueryProvider>
+            <Header />
+            {children}
+          </QueryProvider>
+        </AuthProvider>
+      </body>
     </html>
-  )
+  );
 }
