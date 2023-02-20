@@ -4,6 +4,8 @@ import React from "react";
 import { redirect } from "next/navigation";
 import { useSession } from "next-auth/react";
 
+import PostsList from "./PostsList";
+
 export default function Dashboard() {
   const { data: session, status } = useSession();
 
@@ -16,7 +18,7 @@ export default function Dashboard() {
       <div className="text-xl font-bold">
         Welcome back {session?.user?.name}!
       </div>
-      user posts
+      <PostsList />
     </div>
   );
 }

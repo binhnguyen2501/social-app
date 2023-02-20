@@ -7,6 +7,7 @@ import { useSession, signOut } from "next-auth/react";
 import classNames from "classnames";
 
 import Button from "../components/Button";
+
 import User from "../../public/assets/user.svg";
 
 export default function UserInfo() {
@@ -19,6 +20,9 @@ export default function UserInfo() {
 
   return (
     <div className="flex items-center gap-4">
+      <Button width={60} onClick={() => signOut()}>
+        Sign Out
+      </Button>
       <div className="cursor-pointer" onClick={() => router.push("/dashboard")}>
         <Image
           src={session?.user?.image || User}
@@ -30,9 +34,6 @@ export default function UserInfo() {
           })}
         />
       </div>
-      <Button width={60} onClick={() => signOut()}>
-        Sign Out
-      </Button>
     </div>
   );
 }
