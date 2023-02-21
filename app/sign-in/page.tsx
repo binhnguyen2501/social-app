@@ -41,8 +41,8 @@ export default function Auth() {
     redirect("/");
   }
 
-  const { mutate, isLoading } = useMutation(
-    async (data: IFormData) =>
+  const { mutate, isLoading } = useMutation({
+    mutationFn: async (data: IFormData) =>
       await signIn("credentials", {
         redirect: false,
         ...data,
@@ -59,8 +59,8 @@ export default function Auth() {
             }`
           );
         }
-      })
-  );
+      }),
+  });
 
   const onSubmit = handleSubmit((data) => {
     const dataForm = {

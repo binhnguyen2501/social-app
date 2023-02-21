@@ -14,7 +14,7 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="flex flex-col gap-6 mx-4 md:mx-20 xl:mx-80">
+    <div className="flex flex-col gap-6 mx-4 md:mx-20 xl:mx-80 mb-7">
       <div className="text-xl font-bold">
         Welcome back {session?.user?.name}!
       </div>

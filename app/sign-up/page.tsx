@@ -46,18 +46,17 @@ export default function SignUp() {
   const password = useRef<any>({});
   password.current = watch("password", "");
 
-  const { mutate, isLoading } = useMutation(
-    async (data: IFormData) => await axios.post("/api/auth/register", data),
-    {
-      onError(error: any) {
-        toast.error(`${error.response.data.message}`);
-      },
-      onSuccess(res) {
-        toast.success(`${res.data.message}`);
-        router.push("/sign-in");
-      },
-    }
-  );
+  const { mutate, isLoading } = useMutation({
+    mutationFn: async (data: IFormData) =>
+      await axios.post("/api/auth/register", data),
+    onError(error: any) {
+      toast.error(`${error.response.data.message}`);
+    },
+    onSuccess(res) {
+      toast.success(`${res.data.message}`);
+      router.push("/sign-in");
+    },
+  });
 
   const onSubmit = handleSubmit(async (data) => {
     const dataForm = {

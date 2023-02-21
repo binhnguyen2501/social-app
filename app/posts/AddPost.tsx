@@ -28,23 +28,24 @@ export default function AddPost() {
   let toastPostID: string;
   const queryClient = useQueryClient();
 
-  const { mutate, isLoading } = useMutation(
-    async (data: IFormData) => await axios.post("/api/posts/addPost", data),
-    {
-      onError(error: any) {
-        toast.error(error.response.data.message, {
-          id: toastPostID,
-        });
-      },
-      onSuccess(res) {
-        toast.success(res.data.message, {
-          id: toastPostID,
-        });
-        queryClient.invalidateQueries(["posts"]);
-        reset();
-      },
-    }
-  );
+  const { mutate, isLoading } = useMutation({
+    mutationFn: async (data: IFormData) =>
+      await axios.post("/api/posts/addPost", data),
+    onError(error: any) {
+      toast.error(error.response.data.message, {
+        id: toastPostID,
+      });
+    },
+    onSuccess(res) {
+      toast.success(res.data.message, {
+        id: toastPostID,
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["posts"],
+      });
+      reset();
+    },
+  });
 
   const onSubmit = handleSubmit((data) => {
     const dataForm = {
