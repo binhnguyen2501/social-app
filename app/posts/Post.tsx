@@ -30,6 +30,7 @@ interface IProps {
   body: string;
   comments: CommentType[];
   isAuth?: boolean;
+  isDetail?: boolean;
 }
 
 export default function Posts({
@@ -40,6 +41,7 @@ export default function Posts({
   body,
   comments,
   isAuth = false,
+  isDetail = false,
 }: IProps) {
   const [openDeleteModal, setOpenDeleteModal] = useState<boolean>(false);
   const [openEditModal, setOpenEditModal] = useState<boolean>(false);
@@ -134,7 +136,7 @@ export default function Posts({
             />
             <h3 className="font-bold text-gray-700 text-lg">{name}</h3>
           </div>
-          {isAuth && (
+          {isAuth && !isDetail && (
             <div className="flex gap-3">
               <div
                 className="text-sm font-bold text-gray-500 cursor-pointer"

@@ -1,3 +1,4 @@
+import { UserType } from './User';
 import { CommentType } from './Comment';
 
 export type PostType = {
@@ -7,13 +8,6 @@ export type PostType = {
   id: string;
   title: string;
   updateAt: string;
-  user: {
-    id: string
-    name: string
-    email: string
-    emailVerified: null,
-    password: null,
-    image: string | null
-  }
+  user: UserType
   userId: string
 }

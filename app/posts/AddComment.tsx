@@ -1,10 +1,10 @@
 "use client";
 
 import React from "react";
-import { useForm } from "react-hook-form";
-import classNames from "classnames";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
+import { useForm } from "react-hook-form";
+import classNames from "classnames";
 import { toast } from "react-hot-toast";
 
 import Button from "../components/Button";
@@ -12,11 +12,15 @@ import Button from "../components/Button";
 import styles from "../components/AuthLayout/AuthLayout.module.scss";
 
 interface IFormData {
-  title: string;
-  body: string;
+  postId: string;
+  comment: string;
 }
 
-export default function AddPost() {
+interface IProps {
+  postId: string;
+}
+
+export default function AddComment({ postId }: IProps) {
   const {
     register,
     handleSubmit,
@@ -30,7 +34,7 @@ export default function AddPost() {
 
   const { mutate, isLoading } = useMutation({
     mutationFn: async (data: IFormData) =>
-      await axios.post("/api/posts/addPost", data),
+      await axios.post("/api/posts/addComment", data),
     onError(error: any) {
       toast.error(error.response.data.message, {
         id: toastPostID,
@@ -41,7 +45,7 @@ export default function AddPost() {
         id: toastPostID,
       });
       queryClient.invalidateQueries({
-        queryKey: ["posts"],
+        queryKey: ["post-detail"],
       });
       reset();
     },
@@ -49,10 +53,10 @@ export default function AddPost() {
 
   const onSubmit = handleSubmit((data) => {
     const dataForm = {
-      title: data.title,
-      body: data.body,
+      comment: data.comment,
+      postId,
     };
-    toastPostID = toast.loading("Creating your post", {
+    toastPostID = toast.loading("Adding your comment", {
       id: toastPostID,
     });
     mutate(dataForm);
@@ -65,46 +69,26 @@ export default function AddPost() {
     >
       <div className="flex flex-col gap-1">
         <div className={styles.form_item_vertical}>
-          <input
-            {...register("title", {
-              required: "Title is required",
-            })}
-            type="text"
-            className={classNames("bg-gray-100", styles.form_input, {
-              [styles.form_input_error]: errors.title,
-            })}
-            placeholder="what's your title?"
-          />
-        </div>
-        {errors.title && (
-          <span className="text-red-500 text-xs text-left">
-            {errors.title.message}
-          </span>
-        )}
-      </div>
-
-      <div className="flex flex-col gap-1">
-        <div className={styles.form_item_vertical}>
           <textarea
-            {...register("body", {
-              required: "Body is required",
+            {...register("comment", {
+              required: "Comment is required",
               maxLength: 300,
             })}
             rows={10}
             className={classNames("bg-gray-100", styles.form_input, {
-              [styles.form_input_error]: errors.body,
+              [styles.form_input_error]: errors.comment,
             })}
-            placeholder="What's on your mind?"
+            placeholder="What's your comment?"
           />
         </div>
         <div
           className={classNames("text-sm font-semibold", {
-            ["text-red-500"]: watch("body")?.length > 300,
+            ["text-red-500"]: watch("comment")?.length > 300,
           })}
-        >{`${watch("body")?.length ? watch("body").length : 0}/300`}</div>
-        {errors.body && (
+        >{`${watch("comment")?.length ? watch("comment").length : 0}/300`}</div>
+        {errors.comment && (
           <span className="text-red-500 text-xs text-left">
-            {errors.body.message}
+            {errors.comment.message}
           </span>
         )}
       </div>
@@ -115,7 +99,7 @@ export default function AddPost() {
           disabled={isLoading}
           width="max-content"
         >
-          {isLoading ? "Loading..." : "Create a post"}
+          {isLoading ? "Loading..." : "Add Comment"}
         </Button>
       </div>
     </form>
