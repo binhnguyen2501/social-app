@@ -36,18 +36,23 @@ export default function PostsList() {
 
   return (
     <div className="flex flex-col gap-6">
-      {data?.posts.map((post: any) => (
-        <Post
-          key={post.id}
-          id={post.id}
-          name={data.name}
-          avatar={data.image}
-          title={post.title}
-          body={post.body}
-          comments={post.comments}
-          isAuth
-        />
-      ))}
+      {data?.posts.length === 0 ? (
+        <div>Post something news!</div>
+      ) : (
+        data?.posts.map((post: any) => (
+          <Post
+            key={post.id}
+            id={post.id}
+            name={data.name}
+            avatar={data.image}
+            title={post.title}
+            body={post.body}
+            comments={post.comments}
+            hearts={post.hearts}
+            isAuth
+          />
+        ))
+      )}
     </div>
   );
 }

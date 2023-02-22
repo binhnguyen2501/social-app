@@ -53,6 +53,7 @@ export default function Home() {
           body={post.body}
           avatar={post.user.image}
           comments={post.comments}
+          hearts={post.hearts}
         />
       ))}
     </div>

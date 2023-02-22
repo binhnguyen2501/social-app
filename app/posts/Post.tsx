@@ -7,7 +7,10 @@ import axios from "axios";
 import { toast } from "react-hot-toast";
 import classNames from "classnames";
 import { useForm } from "react-hook-form";
+import { AiFillHeart } from "react-icons/ai";
+import { useSession } from "next-auth/react";
 
+import { HeartType } from "../types/Heart";
 import { CommentType } from "../types/Comment";
 import Modal from "../components/Modal";
 
@@ -28,6 +31,7 @@ interface IProps {
   title: string;
   body: string;
   comments: CommentType[];
+  hearts: HeartType[];
   isAuth?: boolean;
   isDetail?: boolean;
 }
@@ -39,12 +43,15 @@ export default function Posts({
   title,
   body,
   comments,
+  hearts,
   isAuth = false,
   isDetail = false,
 }: IProps) {
   const [openDeleteModal, setOpenDeleteModal] = useState<boolean>(false);
   const [openEditModal, setOpenEditModal] = useState<boolean>(false);
+  const [liked, setLiked] = useState<boolean>(false);
   let toastPostID: string;
+  const { data: session } = useSession();
   const queryClient = useQueryClient();
   const {
     register,
@@ -68,6 +75,17 @@ export default function Posts({
     }
   }, [openDeleteModal, openEditModal]);
 
+  useEffect(() => {
+    if (
+      hearts.length &&
+      hearts.some(function (el) {
+        return el.userEmail === session?.user?.email;
+      })
+    ) {
+      setLiked(true);
+    }
+  }, [session, hearts]);
+
   const deletePost = useMutation({
     mutationFn: async (id: string) =>
       await axios.delete("/api/posts/deletePost", { data: id }),
@@ -82,7 +100,13 @@ export default function Posts({
       });
       setOpenDeleteModal(false);
       queryClient.invalidateQueries({
+        queryKey: ["posts"],
+      });
+      queryClient.invalidateQueries({
         queryKey: ["auth-posts"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["post-detail"],
       });
     },
   });
@@ -101,9 +125,40 @@ export default function Posts({
       });
       setOpenEditModal(false);
       queryClient.invalidateQueries({
+        queryKey: ["posts"],
+      });
+      queryClient.invalidateQueries({
         queryKey: ["auth-posts"],
       });
+      queryClient.invalidateQueries({
+        queryKey: ["post-detail"],
+      });
       reset();
+    },
+  });
+
+  const togglePost = useMutation({
+    mutationFn: async () =>
+      await axios.post("/api/posts/toggleLike", {
+        postId: id,
+      }),
+    onError: (error: any) => {
+      toast.error(error.response.data.message, {
+        id: toastPostID,
+      });
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({
+        queryKey: ["posts"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["auth-posts"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["post-detail"],
+      });
+      if (data.status === 201) setLiked(true);
+      if (data.status === 200) setLiked(false);
     },
   });
 
@@ -128,7 +183,12 @@ export default function Posts({
 
   return (
     <React.Fragment>
-      <div className="bg-white p-8 rounded-lg">
+      <motion.div
+        animate={{ opacity: 1, scale: 1 }}
+        initial={{ opacity: 0, scale: 0.8 }}
+        transition={{ ease: "easeOut" }}
+        className="bg-white p-8 rounded-lg"
+      >
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-2">
             <Image
@@ -163,18 +223,29 @@ export default function Posts({
           <div className="text-lg font-semibold text-gray-600">{title}</div>
           <div className="text-base font-normal">{body}</div>
         </div>
-        {isAuth ? (
-          <p className="text-sm text-gray-700 font-bold w-max">
-            {comments?.length} Comments
-          </p>
-        ) : (
-          <Link href={`posts/${id}`}>
+        <div className="flex items-center gap-4">
+          {isAuth ? (
             <p className="text-sm text-gray-700 font-bold w-max">
               {comments?.length} Comments
             </p>
-          </Link>
-        )}
-      </div>
+          ) : (
+            <Link href={`posts/${id}`}>
+              <p className="text-sm text-gray-700 font-bold w-max">
+                {comments?.length} Comments
+              </p>
+            </Link>
+          )}
+          <div
+            onClick={() => togglePost.mutate()}
+            className={`text-sm font-bold flex items-center gap-1 ${
+              liked ? "text-red-700" : "text-gray-700"
+            }`}
+          >
+            {hearts?.length}
+            <AiFillHeart className="text-2xl cursor-pointer" />
+          </div>
+        </div>
+      </motion.div>
       <AnimatePresence initial={false} exitBeforeEnter={true}>
         {openDeleteModal && (
           <Modal closeModal={() => setOpenDeleteModal(false)} title="Delete">

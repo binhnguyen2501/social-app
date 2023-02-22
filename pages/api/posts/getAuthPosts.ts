@@ -23,7 +23,8 @@ export default async function getAuthPosts(
               createdAt: "desc"
             },
             include: {
-              comments: true
+              comments: true,
+              hearts: true
             }
           }
         }

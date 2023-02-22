@@ -59,6 +59,7 @@ export default function PostDetail(url: IProps) {
         title={data?.title || ""}
         body={data?.body || ""}
         comments={data?.comments || []}
+        hearts={data?.hearts || []}
         isAuth
         isDetail
       />

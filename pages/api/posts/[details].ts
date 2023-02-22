@@ -13,6 +13,7 @@ export default async function postDetail(
         },
         include: {
           user: true,
+          hearts: true,
           comments: {
             orderBy: {
               createdAt: "desc",

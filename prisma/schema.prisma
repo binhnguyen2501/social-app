@@ -21,6 +21,7 @@ model User {
   sessions      Session[]
   posts         Post[]
   comments      Comment[]
+  hearts        Heart[]
 }
 
 model Post {
@@ -32,6 +33,16 @@ model Post {
   userId    String
   user      User      @relation(fields: [userId], references: [id])
   comments  Comment[]
+  hearts    Heart[]
+}
+
+model Heart {
+  id        String @id @default(auto()) @map("_id") @db.ObjectId
+  postId    String
+  userId    String
+  userEmail String
+  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post      Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
 }
 
 model Comment {

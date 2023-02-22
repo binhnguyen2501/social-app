@@ -10,7 +10,8 @@ export default async function getPosts(
       const result = await client.post.findMany({
         include: {
           user: true,
-          comments: true
+          comments: true,
+          hearts: true
         },
         orderBy: {
           createdAt: "desc"
