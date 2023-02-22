@@ -34,7 +34,7 @@ export default function AddComment({ postId }: IProps) {
 
   const { mutate, isLoading } = useMutation({
     mutationFn: async (data: IFormData) =>
-      await axios.post("/api/posts/addComment", data),
+      await axios.post("/api/comments/addComment", data),
     onError(error: any) {
       toast.error(error.response.data.message, {
         id: toastPostID,

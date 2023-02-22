@@ -1,47 +1,35 @@
-import React, { useState, useEffect } from "react";
-import Link from "next/link";
+"use client";
+
+import React, { useState, useEffect, useMemo } from "react";
 import Image from "next/image";
-import { AnimatePresence, motion } from "framer-motion";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient, useMutation } from "@tanstack/react-query";
+import { useSession } from "next-auth/react";
 import axios from "axios";
-import { toast } from "react-hot-toast";
 import classNames from "classnames";
+import { format, parseISO } from "date-fns";
+import { AnimatePresence, motion } from "framer-motion";
+import { toast } from "react-hot-toast";
 import { useForm } from "react-hook-form";
 
-import { CommentType } from "../types/Comment";
-import Modal from "../components/Modal";
+import { CommentType } from "../../types/Comment";
+import Modal from "../../components/Modal";
 
-import User from "../../public/assets/user.svg";
+import User from "../../../public/assets/user.svg";
 
-import styles from "../components/AuthLayout/AuthLayout.module.scss";
+import styles from "../../components/AuthLayout/AuthLayout.module.scss";
+
+interface IProps {
+  comments: CommentType[];
+}
 
 interface IFormData {
   id: string;
-  title: string;
-  body: string;
+  message: string;
 }
 
-interface IProps {
-  id: string;
-  avatar: string | null;
-  name: string;
-  title: string;
-  body: string;
-  comments: CommentType[];
-  isAuth?: boolean;
-  isDetail?: boolean;
-}
-
-export default function Posts({
-  id,
-  avatar,
-  name,
-  title,
-  body,
-  comments,
-  isAuth = false,
-  isDetail = false,
-}: IProps) {
+export default function CommentList({ comments }: IProps) {
+  const { data: session } = useSession();
+  const [selectedComment, setSelectedComment] = useState<string>("");
   const [openDeleteModal, setOpenDeleteModal] = useState<boolean>(false);
   const [openEditModal, setOpenEditModal] = useState<boolean>(false);
   let toastPostID: string;
@@ -53,12 +41,8 @@ export default function Posts({
     formState: { errors },
     reset,
     watch,
-  } = useForm<IFormData>({
-    defaultValues: {
-      title,
-      body,
-    },
-  });
+    setValue,
+  } = useForm<IFormData>();
 
   useEffect(() => {
     if (openDeleteModal || openEditModal) {
@@ -68,9 +52,9 @@ export default function Posts({
     }
   }, [openDeleteModal, openEditModal]);
 
-  const deletePost = useMutation({
+  const deleteComment = useMutation({
     mutationFn: async (id: string) =>
-      await axios.delete("/api/posts/deletePost", { data: id }),
+      await axios.delete("/api/comments/deleteComment", { data: id }),
     onError(error: any) {
       toast.error(error.response.data.message, {
         id: toastPostID,
@@ -81,15 +65,16 @@ export default function Posts({
         id: toastPostID,
       });
       setOpenDeleteModal(false);
+      setSelectedComment("");
       queryClient.invalidateQueries({
-        queryKey: ["auth-posts"],
+        queryKey: ["post-detail"],
       });
     },
   });
 
-  const editPost = useMutation({
+  const editComment = useMutation({
     mutationFn: async (data: IFormData) =>
-      await axios.put("/api/posts/editPost", data),
+      await axios.put("/api/comments/editComment", data),
     onError(error: any) {
       toast.error(error.response.data.message, {
         id: toastPostID,
@@ -100,8 +85,9 @@ export default function Posts({
         id: toastPostID,
       });
       setOpenEditModal(false);
+      setSelectedComment("");
       queryClient.invalidateQueries({
-        queryKey: ["auth-posts"],
+        queryKey: ["post-detail"],
       });
       reset();
     },
@@ -109,78 +95,82 @@ export default function Posts({
 
   const onSubmit = handleSubmit((data) => {
     const dataForm = {
-      id,
-      title: data.title,
-      body: data.body,
+      id: selectedComment,
+      message: data.message,
     };
-    toastPostID = toast.loading("Updating your post", {
+    toastPostID = toast.loading("Updating your comment", {
       id: toastPostID,
     });
-    editPost.mutate(dataForm);
+    editComment.mutate(dataForm);
   });
 
   const handleDelete = () => {
-    toastPostID = toast.loading("Deleting your post", {
+    toastPostID = toast.loading("Deleting your comment", {
       id: toastPostID,
     });
-    deletePost.mutate(id);
+    deleteComment.mutate(selectedComment);
   };
 
   return (
     <React.Fragment>
-      <div className="bg-white p-8 rounded-lg">
-        <div className="flex justify-between items-center">
-          <div className="flex items-center gap-2">
-            <Image
-              src={avatar || User}
-              width={50}
-              height={50}
-              alt="avatar"
-              className={classNames("rounded-full", {
-                ["border-2 border-[#e60112] bg-white"]: !avatar,
-              })}
-            />
-            <h3 className="font-bold text-gray-700 text-lg">{name}</h3>
-          </div>
-          {isAuth && !isDetail && (
-            <div className="flex gap-3">
-              <div
-                className="text-sm font-bold text-gray-500 cursor-pointer"
-                onClick={() => setOpenEditModal(true)}
-              >
-                Edit
+      <div className="flex flex-col gap-6">
+        {comments.map((comment: CommentType) => {
+          return (
+            <div className="bg-white p-8 rounded-xl" key={comment.id}>
+              <div className="flex justify-between">
+                <div className="flex items-center gap-2">
+                  <Image
+                    src={comment.user.image || User}
+                    width={40}
+                    height={40}
+                    alt="avatar"
+                    className={classNames("rounded-full", {
+                      ["border-2 border-[#e60112] bg-white"]:
+                        !comment.user.image,
+                    })}
+                  />
+                  <div className="flex md:items-center items-start md:flex-row flex-col md:gap-2 gap-0">
+                    <div className="font-bold">{comment.user.name}</div>
+                    <div className="font-normal text-sm text-gray-500">
+                      {format(parseISO(comment.createdAt), "dd/MM/yyyy HH:mm")}
+                    </div>
+                  </div>
+                </div>
+                {session?.user?.email === comment.user.email && (
+                  <div className="flex gap-3">
+                    <div
+                      className="text-sm font-bold text-gray-500 cursor-pointer"
+                      onClick={() => {
+                        setOpenEditModal(true);
+                        setSelectedComment(comment.id);
+                        setValue("message", comment.message);
+                      }}
+                    >
+                      Edit
+                    </div>
+                    <div
+                      className="text-sm font-bold text-[#e60112] cursor-pointer"
+                      onClick={() => {
+                        setOpenDeleteModal(true);
+                        setSelectedComment(comment.id);
+                      }}
+                    >
+                      Delete
+                    </div>
+                  </div>
+                )}
               </div>
-              <div
-                className="text-sm font-bold text-[#e60112] cursor-pointer"
-                onClick={() => setOpenDeleteModal(true)}
-              >
-                Delete
-              </div>
+              <div className="mt-4">{comment.message}</div>
             </div>
-          )}
-        </div>
-        <div className="my-8 flex flex-col gap-2">
-          <div className="text-lg font-semibold text-gray-600">{title}</div>
-          <div className="text-base font-normal">{body}</div>
-        </div>
-        {isAuth ? (
-          <p className="text-sm text-gray-700 font-bold w-max">
-            {comments?.length} Comments
-          </p>
-        ) : (
-          <Link href={`posts/${id}`}>
-            <p className="text-sm text-gray-700 font-bold w-max">
-              {comments?.length} Comments
-            </p>
-          </Link>
-        )}
+          );
+        })}
       </div>
       <AnimatePresence initial={false} exitBeforeEnter={true}>
         {openDeleteModal && (
           <Modal closeModal={() => setOpenDeleteModal(false)} title="Delete">
             <div className="flex flex-col gap-5 mt-4">
               <div className="text-sm">
-                Are you sure you want to delete this post?
+                Are you sure you want to delete this comment?
               </div>
               <div className="flex justify-end space-x-3">
                 <motion.button
@@ -197,7 +187,7 @@ export default function Posts({
                   whileHover={{ scale: 1.01 }}
                   whileTap={{ scale: 0.99 }}
                 >
-                  Delete Post
+                  Delete Comment
                 </motion.button>
               </div>
             </div>
@@ -211,49 +201,29 @@ export default function Posts({
             >
               <div className="flex flex-col gap-1">
                 <div className={styles.form_item_vertical}>
-                  <input
-                    {...register("title", {
-                      required: "Title is required",
-                    })}
-                    type="text"
-                    className={classNames("bg-gray-100", styles.form_input, {
-                      [styles.form_input_error]: errors.title,
-                    })}
-                    placeholder="what's your title?"
-                  />
-                </div>
-                {errors.title && (
-                  <span className="text-red-500 text-xs text-left">
-                    {errors.title.message}
-                  </span>
-                )}
-              </div>
-
-              <div className="flex flex-col gap-1">
-                <div className={styles.form_item_vertical}>
                   <textarea
-                    {...register("body", {
-                      required: "Body is required",
+                    {...register("message", {
+                      required: "Comment is required",
                       maxLength: 300,
                     })}
                     rows={10}
                     className={classNames("bg-gray-100", styles.form_input, {
-                      [styles.form_input_error]: errors.body,
+                      [styles.form_input_error]: errors.message,
                     })}
-                    placeholder="What's on your mind?"
+                    placeholder="What's do your wanna comment?"
                   />
                 </div>
                 <div
                   className={classNames("text-sm font-semibold", {
                     ["text-red-500"]:
-                      watch("body")?.length > 300 || errors.body,
+                      watch("message")?.length > 300 || errors.message,
                   })}
                 >{`${
-                  watch("body")?.length ? watch("body").length : 0
+                  watch("message")?.length ? watch("message").length : 0
                 }/300`}</div>
-                {errors.body && (
+                {errors.message && (
                   <span className="text-red-500 text-xs text-left">
-                    {errors.body.message}
+                    {errors.message.message}
                   </span>
                 )}
               </div>
@@ -269,11 +239,11 @@ export default function Posts({
                 <motion.button
                   className="px-3 py-1 bg-[#EF4638] hover:bg-red-600 text-white rounded-lg"
                   type="submit"
-                  disabled={editPost.isLoading}
+                  disabled={editComment.isLoading}
                   whileHover={{ scale: 1.01 }}
                   whileTap={{ scale: 0.99 }}
                 >
-                  {editPost.isLoading ? "Loading..." : "Edit Post"}
+                  {editComment.isLoading ? "Loading..." : "Edit Comment"}
                 </motion.button>
               </div>
             </form>

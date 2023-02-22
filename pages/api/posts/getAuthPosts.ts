@@ -10,7 +10,7 @@ export default async function getAuthPosts(
   if (req.method === "GET") {
     const session = await getServerSession(req, res, authOptions)
     if (!session) {
-      return res.status(401).json({ message: "Please sign in to make a post" });
+      return res.status(401).json({ message: "Please sign in to get auth posts" });
     }
     try {
       const result = await client.user.findUnique({
@@ -39,6 +39,6 @@ export default async function getAuthPosts(
   } else {
     res
       .status(500)
-      .json({ message: "HTTP method not valid only POST accepted" });
+      .json({ message: "HTTP method not valid only GET accepted" });
   }
 }

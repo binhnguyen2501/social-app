@@ -6,17 +6,14 @@ import { redirect } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
-import classNames from "classnames";
-import { format, parseISO } from "date-fns";
 
-import { CommentType } from "@/app/types/Comment";
-import Loading from "../../components/Loading";
+import { PostType } from "@/app/types/Post";
 import Post from "../Post";
+import Loading from "../../components/Loading";
 import AddComment from "../AddComment";
+import CommentList from "./CommentList";
 
 import Error from "../../../public/assets/404.png";
-import User from "../../../public/assets/user.svg";
-import { PostType } from "@/app/types/Post";
 
 interface IProps {
   params: {
@@ -30,7 +27,7 @@ const getPostDetail = async (slug: string) => {
 };
 
 export default function PostDetail(url: IProps) {
-  const { data: session, status } = useSession();
+  const { status } = useSession();
   const { data, error, isLoading } = useQuery<PostType>({
     queryFn: () => getPostDetail(url.params.slug),
     queryKey: ["post-detail"],
@@ -66,30 +63,7 @@ export default function PostDetail(url: IProps) {
         isDetail
       />
       <AddComment postId={data?.id || ""} />
-      <div className="flex flex-col gap-6">
-        {data?.comments.map((comment: CommentType) => {
-          return (
-            <div className="bg-white p-8 rounded-xl" key={comment.id}>
-              <div className="flex items-center gap-2">
-                <Image
-                  src={comment.user.image || User}
-                  width={40}
-                  height={40}
-                  alt="avatar"
-                  className={classNames("rounded-full", {
-                    ["border-2 border-[#e60112] bg-white"]: !comment.user.image,
-                  })}
-                />
-                <div className="font-bold">{comment.user.name}</div>
-                <div className="font-normal text-sm text-gray-500">
-                  {format(parseISO(comment.createdAt), "dd/MM/yyyy HH:mm")}
-                </div>
-              </div>
-              <div className="mt-4">{comment.message}</div>
-            </div>
-          );
-        })}
-      </div>
+      <CommentList comments={data?.comments || []} />
     </div>
   );
 }

@@ -3,39 +3,34 @@ import client from "@/prisma/client";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../auth/[...nextauth]";
 
-export default async function editPost(
+export default async function editComment(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
   if (req.method === "PUT") {
-    const { id, title, body } = req.body
+    const { id, message } = req.body
 
     const session = await getServerSession(req, res, authOptions)
     if (!session) {
-      return res.status(401).json({ message: "Please sign in to update a post" });
-    }
-
-    if (title.length > 300) {
-      return res.status(403).json({ message: "Please write a shorter post title" });
+      return res.status(401).json({ message: "Please sign in to update a comment" });
     }
 
     try {
-      const result = await client.post.update({
+      const result = await client.comment.update({
         where: {
           id
         },
         data: {
-          title,
-          body
+          message,
         }
       });
       res.status(200).json({
-        message: "Update post successfully",
+        message: "Update comment successfully",
         data: result
       });
     } catch (e) {
       console.error(e);
-      res.status(400).json({ message: "Update post fail" });
+      res.status(400).json({ message: "Update comment fail" });
     }
   } else {
     res

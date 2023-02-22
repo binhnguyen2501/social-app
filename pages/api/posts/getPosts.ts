@@ -27,6 +27,6 @@ export default async function getPosts(
   } else {
     res
       .status(500)
-      .json({ message: "HTTP method not valid only POST accepted" });
+      .json({ message: "HTTP method not valid only GET accepted" });
   }
 }

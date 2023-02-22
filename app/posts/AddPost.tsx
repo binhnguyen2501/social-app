@@ -99,7 +99,7 @@ export default function AddPost() {
         </div>
         <div
           className={classNames("text-sm font-semibold", {
-            ["text-red-500"]: watch("body")?.length > 300,
+            ["text-red-500"]: watch("body")?.length > 300 || errors.body,
           })}
         >{`${watch("body")?.length ? watch("body").length : 0}/300`}</div>
         {errors.body && (

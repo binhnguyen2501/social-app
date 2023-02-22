@@ -10,23 +10,23 @@ export default async function deletePost(
   if (req.method === "DELETE") {
     const session = await getServerSession(req, res, authOptions)
     if (!session) {
-      return res.status(401).json({ message: "Please sign in to delete a post" });
+      return res.status(401).json({ message: "Please sign in to delete a comment" });
     }
 
     try {
       const postId = req.body
-      const result = await client.post.delete({
+      const result = await client.comment.delete({
         where: {
           id: postId
         }
       })
       res.status(200).json({
-        message: "Delete post successfully",
+        message: "Delete comment successfully",
         data: result
       });
     } catch (e) {
       console.error(e);
-      res.status(400).json({ message: "Delete post fail" });
+      res.status(400).json({ message: "Delete comment fail" });
     }
   } else {
     res
