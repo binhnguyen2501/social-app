@@ -1,10 +1,13 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import client from "@/prisma/client";
+import runMiddleware, { cors } from "../cors";
 
 export default async function getPosts(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
+  await runMiddleware(req, res, cors);
+
   if (req.method === "GET") {
     try {
       const result = await client.post.findMany({
