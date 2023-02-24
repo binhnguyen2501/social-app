@@ -4,5 +4,5 @@ export type UserType = {
   id: string
   image: string | null
   name: string
-  password: null
+  password: string | null
 }

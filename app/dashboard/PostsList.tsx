@@ -4,8 +4,9 @@ import React from "react";
 import Image from "next/image";
 import axios from "axios";
 import { useQuery } from "@tanstack/react-query";
-import { AuthPostType } from "../types/AuthPost";
 
+import { AuthPostType } from "../types/AuthPost";
+import { PostType } from "../types/Post";
 import Post from "../posts/Post";
 import Loading from "../components/Loading";
 
@@ -39,7 +40,7 @@ export default function PostsList() {
       {data?.posts.length === 0 ? (
         <div>Post something news!</div>
       ) : (
-        data?.posts.map((post: any) => (
+        data?.posts.map((post: PostType) => (
           <Post
             key={post.id}
             id={post.id}
