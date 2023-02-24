@@ -3,16 +3,16 @@ import client from "@/prisma/client";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../auth/[...nextauth]";
 
-export default async function deletePost(
+export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  if (req.method === "DELETE") {
-    const session = await getServerSession(req, res, authOptions)
-    if (!session) {
-      return res.status(401).json({ message: "Please sign in to delete a comment" });
-    }
+  const session = await getServerSession(req, res, authOptions)
+  if (!session) {
+    return res.status(401).json({ message: "Please sign in to delete a comment" });
+  }
 
+  if (req.method === "DELETE") {
     try {
       const postId = req.body
       const result = await client.comment.delete({

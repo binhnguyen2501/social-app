@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import client from "@/prisma/client";
 import bcrypt from "bcryptjs";
 
-export default async function register(
+export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {

@@ -3,17 +3,17 @@ import client from "@/prisma/client";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../auth/[...nextauth]";
 
-export default async function editPost(
+export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
+  const session = await getServerSession(req, res, authOptions)
+  if (!session) {
+    return res.status(401).json({ message: "Please sign in to update a post" });
+  }
+
   if (req.method === "PUT") {
     const { id, title, body } = req.body
-
-    const session = await getServerSession(req, res, authOptions)
-    if (!session) {
-      return res.status(401).json({ message: "Please sign in to update a post" });
-    }
 
     if (title.length > 300) {
       return res.status(403).json({ message: "Please write a shorter post title" });
