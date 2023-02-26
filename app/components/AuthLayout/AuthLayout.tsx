@@ -33,7 +33,7 @@ export default function AuthLayout({ children }: IProps) {
             </ul>
           </div>
         </div>
-        <div className="right flex flex-col justify-evenly bg-slate-100">
+        <div className="right flex flex-col justify-evenly bg-slate-100 overflow-y-auto">
           <div className="text-center py-10">{children}</div>
         </div>
       </div>
